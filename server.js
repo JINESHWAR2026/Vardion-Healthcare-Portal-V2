@@ -25,6 +25,21 @@ fs.mkdirSync(uploadDir, { recursive: true });
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (_req, res) => {
+  res.sendFile(
+    path.join(__dirname, "public", "index.html"),
+    (err) => {
+      if (err && !res.headersSent) {
+        console.error("Home page error:", err.message);
+        res.status(404).send("Home page not found. Please check public/index.html.");
+      }
+    }
+  );
+});
+
+app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 200, standardHeaders: true, legacyHeaders: false }));
 app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 200, standardHeaders: true, legacyHeaders: false }));
 
 function signToken(user) {
