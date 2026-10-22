@@ -771,7 +771,7 @@ app.post("/api/notifications/whatsapp", auth, roles("ADMIN"), async (_req, res) 
   return res.status(501).json({
     error: "WhatsApp provider credentials and template configuration are not set up."
   });
-}));
+});
 
 app.use("/api", (_req, res) => {
   res.status(404).json({ error: "API endpoint not found." });
