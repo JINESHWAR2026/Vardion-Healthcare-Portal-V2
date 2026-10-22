@@ -251,5 +251,55 @@ app.use((err, _req, res, _next) => {
   console.error(err.message);
   res.status(400).json({ error: err.message || "Request error." });
 });
-app.listen(PORT, "0.0.0.0", () => console.log(`Vardion portal listening on ${PORT}`));
-process.on("SIGTERM", async () => { await prisma.$disconnect(); process.exit(0); });
+
+async function bootstrapAdmin() {
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.log("Admin bootstrap skipped: ADMIN_EMAIL/ADMIN_PASSWORD not configured");
+    return;
+  }
+
+  if (password.length < 12) {
+    throw new Error("ADMIN_PASSWORD must be at least 12 characters");
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+
+  if (existing) {
+    console.log("Admin bootstrap skipped: email already exists");
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await prisma.user.create({
+    data: {
+      name: process.env.ADMIN_NAME || "Vardion Admin",
+      email,
+      passwordHash,
+      role: "ADMIN",
+      status: "APPROVED"
+    }
+  });
+
+  console.log("Initial admin account created");
+}
+
+async function startServer() {
+  await bootstrapAdmin();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Vardion portal listening on ${PORT}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Server startup failed:", error);
+  process.exit(1);
+});
+
+process.on("SIGTERM", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
