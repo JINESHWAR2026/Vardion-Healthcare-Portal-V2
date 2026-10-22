@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vardion Healthcare Portal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f7f5;color:#16342d}
+header{background:#0b5547;color:white;padding:24px 16px}header div,main{max-width:1000px;margin:auto}
+h1{margin:0 0 8px;font-size:clamp(25px,4vw,36px)}main{padding:22px 16px 48px}
+.warning{padding:14px;background:#fff3cd;border:1px solid #f1d58a;border-radius:10px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:18px 0}
+.card{background:white;padding:18px;border:1px solid #d9e6df;border-radius:12px;margin-bottom:14px}
+h2{font-size:20px;margin-top:0}p{line-height:1.5}.muted{color:#5b7069;font-size:14px}
+label{display:block;margin:10px 0 5px;font-weight:bold}input,select,button{width:100%;padding:11px;border:1px solid #bfd1c8;border-radius:8px;font:inherit}
+button{background:#0b5547;color:white;border:0;margin-top:12px;font-weight:bold;cursor:pointer}
+#result{white-space:pre-wrap;margin-top:12px}.small{font-size:12px;color:#60766e}
+</style></head>
+<body>
+<header><div><h1>Vardion™ Healthcare Portal</h1><p>Vardhaman Trading Co. — Cloud Portal Starter</p></div></header>
+<main>
+<div class="warning"><strong>महत्वपूर्ण:</strong> यह full-stack starter है, लेकिन अभी production-ready नहीं है। पहले cloud database और admin account configure करना, integrations पूरा करना और security tests चलाना जरूरी है। असली ग्राहक डेटा/पेमेंट अभी इस्तेमाल न करें।</div>
+<div class="grid">
+<section class="card"><h2>🧑‍⚕️ Chemist</h2><p>Registration, approval, product access, order creation और licence document upload के API शामिल हैं।</p></section>
+<section class="card"><h2>🚚 Dealer / Wholesaler</h2><p>अलग role और permission checks शामिल हैं। Dealer assignment/dispatch workflow को business rules के अनुसार finalize करना होगा।</p></section>
+<section class="card"><h2>🏢 Company Admin</h2><p>User approvals, product management, licence review और audit log के API शामिल हैं।</p></section>
+</div>
+<section class="card"><h2>Server health check</h2><p class="muted">यह जाँचता है कि deployed server जवाब दे रहा है।</p><button id="health">Check server</button><div id="result" aria-live="polite"></div></section>
+<section class="card"><h2>आगे क्या कॉन्फ़िगर करना बाकी है?</h2><p>Persistent PostgreSQL database, secure private object storage, Razorpay signed webhooks, WhatsApp Cloud API templates, GST invoice rules, stock reservation/batch-expiry allocation, backup/restore, admin bootstrap, and production security review.</p><p class="small">यह starter आपकी पुरानी vardion-proffesional संपर्क वेबसाइट से अलग है और उससे कोई integration नहीं करता।</p></section>
+</main>
+<script>
+document.getElementById("health").addEventListener("click",async()=>{const r=document.getElementById("result");r.textContent="जाँच हो रही है…";try{const x=await fetch("/api/health");r.textContent=JSON.stringify(await x.json(),null,2)}catch(e){r.textContent="Server से संपर्क नहीं हो पाया। Deployment की जाँच करें."}});
+</script></body></html>
