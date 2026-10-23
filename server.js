@@ -302,13 +302,17 @@ app.post("/api/auth/login", authLimiter, asyncRoute(async (req, res) => {
   res.json({ token, user: cleanUser(user) });
 }));
 
-app.get("/api/auth/me", auth, asyncRoute(async (req, res) => {
+// Compatibility route for frontend requests to /api/me
+app.get("/api/me", auth, asyncRoute(async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id }
   });
 
-  if (!user) return res.status(404).json({ error: "User not found." });
-  res.json({ user: cleanUser(user) });
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  res.json(cleanUser(user));
 }));
 
 // Products
