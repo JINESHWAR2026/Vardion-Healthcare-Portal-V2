@@ -10,13 +10,17 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:var(--light);color:#1b2b40}
 header{background:var(--navy);color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
-header h1{margin:0;font-size:24px}header p{margin:6px 0 0;color:#c8d8ed}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;color:#c8d8ed}
 button{background:var(--blue);color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:600}
 button:disabled{opacity:.5;cursor:not-allowed}
-.secondary{background:#e7eef8;color:#173756}.danger{background:#b42335}.success{background:var(--green)}
+.secondary{background:#e7eef8;color:#173756}
+.danger{background:#b42335}
+.success{background:var(--green)}
 main{max-width:1150px;margin:28px auto;padding:0 18px}
 .card{background:white;border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:0 3px 12px #12233d08}
-h2{margin-top:0;font-size:21px}h3{font-size:17px}
+h2{margin-top:0;font-size:21px}
+h3{font-size:17px}
 input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:white}
 label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
@@ -42,12 +46,16 @@ footer{text-align:center;padding:24px;color:#718096;font-size:12px}
 </head>
 <body>
 <header>
-  <div><h1>Vardion™ Healthcare</h1><p>Vardhaman Trading Co. · Healthcare Order Portal</p></div>
+  <div>
+    <h1>Vardion™ Healthcare</h1>
+    <p>Vardhaman Trading Co. · Healthcare Order Portal</p>
+  </div>
   <div class="row" style="flex:0 0 auto">
     <span id="who" class="muted" style="color:white"></span>
     <button id="logout" class="secondary hidden" onclick="logout()">Logout</button>
   </div>
 </header>
+
 <div id="message" class="hidden" role="status"></div>
 
 <main>
@@ -60,26 +68,41 @@ footer{text-align:center;padding:24px;color:#718096;font-size:12px}
       <button id="registerTab" class="secondary" onclick="showAuth('register')">Create account</button>
     </div>
   </div>
+
   <form id="loginForm" class="card">
     <h2>Account Login</h2>
-    <label>Email</label><input name="email" type="email" required autocomplete="username">
-    <label>Password</label><input name="password" type="password" required autocomplete="current-password">
+    <label>Email</label>
+    <input name="email" type="email" required autocomplete="username">
+    <label>Password</label>
+    <input name="password" type="password" required autocomplete="current-password">
     <p class="muted">Your account must be approved by the company administrator before you can sign in.</p>
     <button type="submit">Sign in</button>
   </form>
+
   <form id="registerForm" class="card hidden">
     <h2>Business Registration</h2>
     <div class="notice">Registration is for Chemists and Dealers/Wholesalers. Admin accounts must be created securely by the system owner.</div>
     <label>Account type</label>
-    <select name="role" required><option value="CHEMIST">Chemist / Pharmacy</option><option value="DEALER">Dealer / Wholesaler</option></select>
-    <label>Full name</label><input name="name" required maxlength="100">
-    <label>Business name</label><input name="businessName" required maxlength="150">
-    <label>Email</label><input name="email" type="email" required autocomplete="email">
-    <label>Phone</label><input name="phone" type="tel" maxlength="20">
-    <label>Drug licence number</label><input name="drugLicenseNo" required maxlength="100">
-    <label>GSTIN (if applicable)</label><input name="gstin" maxlength="20">
-    <label>Business address</label><textarea name="address" required rows="3" maxlength="500"></textarea>
-    <label>Create password (minimum 12 characters)</label><input name="password" type="password" required minlength="12" autocomplete="new-password">
+    <select name="role" required>
+      <option value="CHEMIST">Chemist / Pharmacy</option>
+      <option value="DEALER">Dealer / Wholesaler</option>
+    </select>
+    <label>Full name</label>
+    <input name="name" required maxlength="100">
+    <label>Business name</label>
+    <input name="businessName" required maxlength="150">
+    <label>Email</label>
+    <input name="email" type="email" required autocomplete="email">
+    <label>Phone</label>
+    <input name="phone" type="tel" maxlength="20">
+    <label>Drug licence number</label>
+    <input name="drugLicenseNo" required maxlength="100">
+    <label>GSTIN (if applicable)</label>
+    <input name="gstin" maxlength="20">
+    <label>Business address</label>
+    <textarea name="address" required rows="3" maxlength="500"></textarea>
+    <label>Create password (minimum 12 characters)</label>
+    <input name="password" type="password" required minlength="12" autocomplete="new-password">
     <button type="submit">Submit registration</button>
     <p class="muted">After registration, wait for administrator approval before login.</p>
   </form>
@@ -91,116 +114,544 @@ footer{text-align:center;padding:24px;color:#718096;font-size:12px}
   <section id="dashboard"></section>
 </section>
 </main>
-<footer>Vardion™ Healthcare · Vardhaman Trading Co.<br>Use only for authorised business accounts. Do not share passwords or access tokens.</footer>
+
+<footer>
+  Vardion™ Healthcare · Vardhaman Trading Co.<br>
+  Use only for authorised business accounts. Do not share passwords or access tokens.
+</footer>
 
 <script>
 const $=s=>document.querySelector(s);
 let token=sessionStorage.getItem('vardion_token')||'';
 let me=null,products=[],orders=[],users=[],documents=[];
 let currentTab='overview';
+
 const money=p=>'₹'+(Number(p||0)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function msg(t,error=false){const e=$('#message');e.textContent=t;e.classList.remove('hidden','error');if(error)e.classList.add('error');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>e.classList.add('hidden'),6000)}
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+}[c]));
+
+function msg(t,error=false){
+  const e=$('#message');
+  e.textContent=t;
+  e.classList.remove('hidden','error');
+  if(error)e.classList.add('error');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>e.classList.add('hidden'),6000);
+}
+
 async function api(url,options={}){
- const headers={...(options.body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})};
- const r=await fetch('/api'+url,{...options,headers});
- const data=await r.json().catch(()=>({error:'Server returned an unreadable response'}));
- if(!r.ok)throw new Error(data.error||data.message||'Request failed ('+r.status+')');
- return data;
+  const headers={
+    ...(options.body?{'Content-Type':'application/json'}:{}),
+    ...(token?{Authorization:'Bearer '+token}:{}),
+    ...(options.headers||{})
+  };
+  const r=await fetch('/api'+url,{...options,headers});
+  const data=await r.json().catch(()=>({error:'Server returned an unreadable response'}));
+  if(!r.ok)throw new Error(data.error||data.message||'Request failed ('+r.status+')');
+  return data;
 }
+
 function showAuth(which){
- $('#loginForm').classList.toggle('hidden',which!=='login');
- $('#registerForm').classList.toggle('hidden',which!=='register');
- $('#loginTab').className=which==='login'?'':'secondary';
- $('#registerTab').className=which==='register'?'':'secondary';
+  $('#loginForm').classList.toggle('hidden',which!=='login');
+  $('#registerForm').classList.toggle('hidden',which!=='register');
+  $('#loginTab').className=which==='login'?'':'secondary';
+  $('#registerTab').className=which==='register'?'':'secondary';
 }
-function logout(){token='';me=null;products=[];orders=[];sessionStorage.removeItem('vardion_token');$('#appArea').classList.add('hidden');$('#authArea').classList.remove('hidden');$('#logout').classList.add('hidden');$('#who').textContent='';showAuth('login');msg('You have been logged out.')}
+
+function logout(){
+  token='';
+  me=null;
+  products=[];
+  orders=[];
+  sessionStorage.removeItem('vardion_token');
+  $('#appArea').classList.add('hidden');
+  $('#authArea').classList.remove('hidden');
+  $('#logout').classList.add('hidden');
+  $('#who').textContent='';
+  showAuth('login');
+  msg('You have been logged out.');
+}
+
 $('#loginForm').addEventListener('submit',async e=>{
- e.preventDefault();const b=e.submitter;b.disabled=true;
- try{const f=Object.fromEntries(new FormData(e.currentTarget));const d=await api('/auth/login',{method:'POST',body:JSON.stringify(f)});token=d.token;sessionStorage.setItem('vardion_token',token);await startApp();msg('Login successful.')}
- catch(err){msg(err.message,true)}finally{b.disabled=false}
+  e.preventDefault();
+  const b=e.submitter;
+  b.disabled=true;
+  try{
+    const f=Object.fromEntries(new FormData(e.currentTarget));
+    const d=await api('/auth/login',{method:'POST',body:JSON.stringify(f)});
+    token=d.token;
+    sessionStorage.setItem('vardion_token',token);
+    await startApp();
+    msg('Login successful.');
+  }catch(err){
+    msg(err.message,true);
+  }finally{
+    b.disabled=false;
+  }
 });
+
 $('#registerForm').addEventListener('submit',async e=>{
- e.preventDefault();const b=e.submitter;b.disabled=true;
- try{const f=Object.fromEntries(new FormData(e.currentTarget));const d=await api('/auth/register',{method:'POST',body:JSON.stringify(f)});msg(d.message||'Registration submitted. Wait for approval.');e.currentTarget.reset();showAuth('login')}
- catch(err){msg(err.message,true)}finally{b.disabled=false}
+  e.preventDefault();
+  const b=e.submitter;
+  b.disabled=true;
+  try{
+    const f=Object.fromEntries(new FormData(e.currentTarget));
+    const d=await api('/auth/register',{method:'POST',body:JSON.stringify(f)});
+    msg(d.message||'Registration submitted. Wait for approval.');
+    e.currentTarget.reset();
+    showAuth('login');
+  }catch(err){
+    msg(err.message,true);
+  }finally{
+    b.disabled=false;
+  }
 });
+
 async function startApp(){
- me=await api('/me');
- $('#authArea').classList.add('hidden');$('#appArea').classList.remove('hidden');$('#logout').classList.remove('hidden');
- $('#who').textContent=(me.name||me.email)+' · '+me.role;
- currentTab='overview';await refreshData();render();
+  me=await api('/me');
+  $('#authArea').classList.add('hidden');
+  $('#appArea').classList.remove('hidden');
+  $('#logout').classList.remove('hidden');
+  $('#who').textContent=(me.name||me.email)+' · '+me.role;
+  currentTab='overview';
+  await refreshData();
+  render();
 }
+
 async function refreshData(){
- const results=await Promise.allSettled([api('/products'),api('/orders')]);
- products=results[0].status==='fulfilled'?(Array.isArray(results[0].value)?results[0].value:results[0].value.products||[]):[];
- orders=results[1].status==='fulfilled'?(Array.isArray(results[1].value)?results[1].value:results[1].value.orders||[]):[];
- if(me.role==='ADMIN'){
-  const r=await Promise.allSettled([api('/admin/users'),api('/admin/documents')]);
-  users=r[0].status==='fulfilled'?(Array.isArray(r[0].value)?r[0].value:r[0].value.users||[]):[];
-  documents=r[1].status==='fulfilled'?(Array.isArray(r[1].value)?r[1].value:r[1].value.documents||[]):[];
- }
+  const results=await Promise.allSettled([api('/products'),api('/orders')]);
+
+  products=results[0].status==='fulfilled'
+    ?(Array.isArray(results[0].value)?results[0].value:results[0].value.products||[])
+    :[];
+
+  orders=results[1].status==='fulfilled'
+    ?(Array.isArray(results[1].value)?results[1].value:results[1].value.orders||[])
+    :[];
+
+  if(me.role==='ADMIN'){
+    const r=await Promise.allSettled([api('/admin/users'),api('/documents')]);
+
+    users=r[0].status==='fulfilled'
+      ?(Array.isArray(r[0].value)?r[0].value:r[0].value.users||[])
+      :[];
+
+    documents=r[1].status==='fulfilled'
+      ?(Array.isArray(r[1].value)?r[1].value:r[1].value.documents||[])
+      :[];
+  }
 }
-const tabs=[['overview','Overview'],['products','Products'],['orders','Orders'],['profile','My account']];
+
+const tabs=[
+  ['overview','Overview'],
+  ['products','Products'],
+  ['orders','Orders'],
+  ['profile','My account']
+];
+
 function render(){
- const isAdmin=me.role==='ADMIN',isDealer=me.role==='DEALER';
- const menu=isAdmin?[...tabs,['users','User approvals'],['documents','Licence documents'],['addproduct','Add product']]:isDealer?[...tabs,['assigned','Dealer orders']]:[...tabs];
- $('#nav').innerHTML=menu.map(([id,label])=>`<button class="${currentTab===id?'active':''}" onclick="go('${id}')">${label}</button>`).join('');
- $('#stats').innerHTML=`
- <div class="stat">Account status<strong style="font-size:18px">${esc(me.status||'APPROVED')}</strong></div>
- <div class="stat">Available products<strong>${products.length}</strong></div>
- <div class="stat">Orders<strong>${orders.length}</strong></div>`;
- const d=$('#dashboard');
- if(currentTab==='overview')d.innerHTML=`<div class="card"><h2>Welcome, ${esc(me.name)}</h2><p>Your role: <span class="badge">${esc(me.role)}</span></p><p class="muted">Use the menu above to browse products, manage orders and review your account.</p></div>
- <div class="grid"><div class="card"><h3>Products</h3><p class="muted">View active products and available prices.</p><button onclick="go('products')">Browse products</button></div><div class="card"><h3>Orders</h3><p class="muted">View order history and current status.</p><button onclick="go('orders')">View orders</button></div></div>`;
- else if(currentTab==='products')renderProducts(d);
- else if(currentTab==='orders'||currentTab==='assigned')renderOrders(d);
- else if(currentTab==='profile')d.innerHTML=`<div class="card"><h2>My account</h2><p><b>Name:</b> ${esc(me.name)}</p><p><b>Email:</b> ${esc(me.email)}</p><p><b>Role:</b> ${esc(me.role)}</p><p><b>Status:</b> ${esc(me.status)}</p><p><b>Business:</b> ${esc(me.businessName||'—')}</p><p><b>Drug licence:</b> ${esc(me.drugLicenseNo||'—')}</p><p><b>GSTIN:</b> ${esc(me.gstin||'—')}</p><p><b>Address:</b> ${esc(me.address||'—')}</p><p class="muted">To update account details, contact the company administrator.</p></div>`;
- else if(currentTab==='addproduct')renderAddProduct(d);
- else if(currentTab==='users')renderUsers(d);
- else if(currentTab==='documents')renderDocuments(d);
+  const isAdmin=me.role==='ADMIN';
+  const isDealer=me.role==='DEALER';
+
+  const menu=isAdmin
+    ?[...tabs,['users','User approvals'],['documents','Licence documents'],['addproduct','Add product']]
+    :isDealer
+      ?[...tabs,['assigned','Dealer orders']]
+      :[...tabs];
+
+  $('#nav').innerHTML=menu.map(([id,label])=>
+    `<button class="${currentTab===id?'active':''}" onclick="go('${id}')">${label}</button>`
+  ).join('');
+
+  $('#stats').innerHTML=`
+    <div class="stat">Account status<strong style="font-size:18px">${esc(me.status||'APPROVED')}</strong></div>
+    <div class="stat">Available products<strong>${products.length}</strong></div>
+    <div class="stat">Orders<strong>${orders.length}</strong></div>`;
+
+  const d=$('#dashboard');
+
+  if(currentTab==='overview'){
+    d.innerHTML=`
+      <div class="card">
+        <h2>Welcome, ${esc(me.name)}</h2>
+        <p>Your role: <span class="badge">${esc(me.role)}</span></p>
+        <p class="muted">Use the menu above to browse products, manage orders and review your account.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3>Products</h3>
+          <p class="muted">View active products and available prices.</p>
+          <button onclick="go('products')">Browse products</button>
+        </div>
+        <div class="card">
+          <h3>Orders</h3>
+          <p class="muted">View order history and current status.</p>
+          <button onclick="go('orders')">View orders</button>
+        </div>
+      </div>`;
+  }else if(currentTab==='products'){
+    renderProducts(d);
+  }else if(currentTab==='orders'||currentTab==='assigned'){
+    renderOrders(d);
+  }else if(currentTab==='profile'){
+    d.innerHTML=`
+      <div class="card">
+        <h2>My account</h2>
+        <p><b>Name:</b> ${esc(me.name)}</p>
+        <p><b>Email:</b> ${esc(me.email)}</p>
+        <p><b>Role:</b> ${esc(me.role)}</p>
+        <p><b>Status:</b> ${esc(me.status)}</p>
+        <p><b>Business:</b> ${esc(me.businessName||'—')}</p>
+        <p><b>Drug licence:</b> ${esc(me.drugLicenseNo||'—')}</p>
+        <p><b>GSTIN:</b> ${esc(me.gstin||'—')}</p>
+        <p><b>Address:</b> ${esc(me.address||'—')}</p>
+        <p class="muted">To update account details, contact the company administrator.</p>
+      </div>`;
+  }else if(currentTab==='addproduct'){
+    renderAddProduct(d);
+  }else if(currentTab==='users'){
+    renderUsers(d);
+  }else if(currentTab==='documents'){
+    renderDocuments(d);
+  }
 }
-function go(t){currentTab=t;render()}
+
+function go(t){
+  currentTab=t;
+  render();
+}
+
 function renderProducts(d){
- if(me.role==='DEALER')d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Dealer prices are displayed where supported by the API.</p>${productTable(true)}</div>`;
- else if(me.role==='ADMIN')d.innerHTML=`<div class="card"><h2>Product catalogue</h2>${productTable(false)}<button onclick="go('addproduct')">Add product</button></div>`;
- else d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Select products and quantities, then submit your order.</p>${productTable(false,true)}</div>`;
+  if(me.role==='DEALER'){
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Dealer prices are displayed where supported by the API.</p>${productTable(true)}</div>`;
+  }else if(me.role==='ADMIN'){
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2>${productTable(false)}<button onclick="go('addproduct')">Add product</button></div>`;
+  }else{
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Select products and quantities, then submit your order.</p>${productTable(false,true)}</div>`;
+  }
 }
+
 function productTable(dealer=false,orderable=false){
- if(!products.length)return '<p class="muted">No active products returned by the server yet.</p>';
- return `<div class="tablewrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Composition</th><th>Pack</th><th>Price</th>${orderable?'<th>Quantity</th>':''}</tr></thead><tbody>${products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.sku)}</td><td>${esc(p.composition||'—')}</td><td>${esc(p.packSize||'—')}</td><td>${money(dealer?p.dealerPaise:p.chemistPaise)}</td>${orderable?`<td><input aria-label="Quantity for ${esc(p.name)}" type="number" min="0" max="10000" value="0" id="qty-${esc(p.id)}" style="width:90px"></td>`:''}</tr>`).join('')}</tbody></table></div>${orderable?`<h3>Delivery details</h3><label>Delivery address</label><textarea id="deliveryAddress" rows="2" required>${esc(me.address||'')}</textarea><label>Order notes (optional)</label><textarea id="orderNotes" rows="2"></textarea><p><button onclick="placeOrder()">Place order</button></p>`:''}`;
+  if(!products.length){
+    return '<p class="muted">No active products returned by the server yet.</p>';
+  }
+
+  return `
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th><th>SKU</th><th>Composition</th><th>Pack</th><th>Price</th>
+            ${orderable?'<th>Quantity</th>':''}
+          </tr>
+        </thead>
+        <tbody>
+          ${products.map(p=>`
+            <tr>
+              <td>${esc(p.name)}</td>
+              <td>${esc(p.sku)}</td>
+              <td>${esc(p.composition||'—')}</td>
+              <td>${esc(p.packSize||'—')}</td>
+              <td>${money(dealer?p.dealerPaise:p.chemistPaise)}</td>
+              ${orderable?`<td><input aria-label="Quantity for ${esc(p.name)}" type="number" min="0" max="10000" value="0" id="qty-${esc(p.id)}" style="width:90px"></td>`:''}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${orderable?`
+      <h3>Delivery details</h3>
+      <label>Delivery address</label>
+      <textarea id="deliveryAddress" rows="2" required>${esc(me.address||'')}</textarea>
+      <label>Order notes (optional)</label>
+      <textarea id="orderNotes" rows="2"></textarea>
+      <p><button onclick="placeOrder()">Place order</button></p>`:''}`;
 }
+
 async function placeOrder(){
- const items=products.map(p=>({productId:p.id,quantity:Number($('#qty-'+p.id)?.value||0)})).filter(x=>x.quantity>0);
- if(!items.length)return msg('Please select at least one product and quantity.',true);
- if(items.some(x=>!Number.isInteger(x.quantity)||x.quantity<1||x.quantity>10000))return msg('Enter valid quantities.',true);
- const deliveryAddress=$('#deliveryAddress').value.trim();if(!deliveryAddress)return msg('Delivery address is required.',true);
- try{const d=await api('/orders',{method:'POST',body:JSON.stringify({items,deliveryAddress,notes:$('#orderNotes').value.trim()})});msg(d.message||'Order submitted.');await refreshData();go('orders')}
- catch(e){msg(e.message,true)}
+  const items=products.map(p=>({
+    productId:p.id,
+    quantity:Number($('#qty-'+p.id)?.value||0)
+  })).filter(x=>x.quantity>0);
+
+  if(!items.length)return msg('Please select at least one product and quantity.',true);
+  if(items.some(x=>!Number.isInteger(x.quantity)||x.quantity<1||x.quantity>10000))return msg('Enter valid quantities.',true);
+
+  const deliveryAddress=$('#deliveryAddress').value.trim();
+  if(!deliveryAddress)return msg('Delivery address is required.',true);
+
+  try{
+    const d=await api('/orders',{
+      method:'POST',
+      body:JSON.stringify({
+        items,
+        deliveryAddress,
+        notes:$('#orderNotes').value.trim()
+      })
+    });
+    msg(d.message||'Order submitted.');
+    await refreshData();
+    go('orders');
+  }catch(e){
+    msg(e.message,true);
+  }
 }
+
 function renderOrders(d){
- if(!orders.length){d.innerHTML='<div class="card"><h2>Orders</h2><p class="muted">No orders found for this account.</p><button onclick="refreshAndRender()">Refresh</button></div>';return}
- const isAdmin=me.role==='ADMIN',isDealer=me.role==='DEALER';
- d.innerHTML=`<div class="card"><h2>${isDealer?'Dealer orders':'Order history'}</h2><button onclick="refreshAndRender()">Refresh orders</button><div class="tablewrap"><table><thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th>Delivery</th>${isAdmin||isDealer?'<th>Update status</th>':''}</tr></thead><tbody>${orders.map(o=>`<tr><td>${esc(o.orderNo||o.id)}</td><td>${esc(o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN'):'—')}</td><td>${esc(o.status)}</td><td>${esc(o.paymentStatus||'PENDING')}</td><td>${money(o.totalPaise)}</td><td>${esc(o.deliveryAddress||'—')}</td>${isAdmin||isDealer?`<td><select id="status-${esc(o.id)}">${['PLACED','ACCEPTED','PACKED','DISPATCHED','DELIVERED','CANCELLED'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select><button onclick="updateStatus('${esc(o.id)}')">Save</button></td>`:''}</tr>`).join('')}</tbody></table></div></div>`;
+  if(!orders.length){
+    d.innerHTML='<div class="card"><h2>Orders</h2><p class="muted">No orders found for this account.</p><button onclick="refreshAndRender()">Refresh</button></div>';
+    return;
+  }
+
+  const isAdmin=me.role==='ADMIN';
+  const isDealer=me.role==='DEALER';
+  const editableStatuses=['ACCEPTED','PACKED','DISPATCHED','DELIVERED','CANCELLED'];
+
+  d.innerHTML=`
+    <div class="card">
+      <h2>${isDealer?'Dealer orders':'Order history'}</h2>
+      <button onclick="refreshAndRender()">Refresh orders</button>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th>Delivery</th>
+              ${isAdmin||isDealer?'<th>Update status</th>':''}
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o=>`
+              <tr>
+                <td>${esc(o.orderNo||o.id)}</td>
+                <td>${esc(o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN'):'—')}</td>
+                <td>${esc(o.status)}</td>
+                <td>${esc(o.paymentStatus||'PENDING')}</td>
+                <td>${money(o.totalPaise)}</td>
+                <td>${esc(o.deliveryAddress||'—')}</td>
+                ${isAdmin||isDealer?`
+                  <td>
+                    <select id="status-${esc(o.id)}">
+                      <option value="${esc(o.status)}" selected>${esc(o.status)}</option>
+                      ${editableStatuses.filter(s=>s!==o.status).map(s=>`<option value="${s}">${s}</option>`).join('')}
+                    </select>
+                    <button onclick="updateStatus('${esc(o.id)}')">Save</button>
+                  </td>`:''}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
 }
+
 async function updateStatus(id){
- try{await api('/orders/'+encodeURIComponent(id)+'/status',{method:'PATCH',body:JSON.stringify({status:$('#status-'+id).value})});msg('Order status updated.');await refreshAndRender()}
- catch(e){msg(e.message,true)}
+  try{
+    await api('/orders/'+encodeURIComponent(id)+'/status',{
+      method:'PATCH',
+      body:JSON.stringify({status:$('#status-'+id).value})
+    });
+    msg('Order status updated.');
+    await refreshAndRender();
+  }catch(e){
+    msg(e.message,true);
+  }
 }
-async function refreshAndRender(){try{await refreshData();render();msg('Data refreshed.')}catch(e){msg(e.message,true)}}
+
+async function refreshAndRender(){
+  try{
+    await refreshData();
+    render();
+    msg('Data refreshed.');
+  }catch(e){
+    msg(e.message,true);
+  }
+}
+
 function renderAddProduct(d){
- d.innerHTML=`<form id="productForm" class="card"><h2>Add a product</h2><p class="muted">Prices are entered in rupees and converted to paise for the API.</p><label>SKU</label><input name="sku" required maxlength="60"><label>Product name</label><input name="name" required maxlength="150"><label>Composition</label><input name="composition" maxlength="250"><label>Pack size</label><input name="packSize" maxlength="100"><div class="grid"><div><label>MRP (₹)</label><input name="mrp" type="number" min="0" step=".01" required></div><div><label>Dealer price (₹)</label><input name="dealer" type="number" min="0" step=".01" required></div><div><label>Chemist price (₹)</label><input name="chemist" type="number" min="0" step=".01" required></div></div><p><button type="submit">Save product</button></p></form>`;
- $('#productForm').addEventListener('submit',async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.currentTarget));try{await api('/products',{method:'POST',body:JSON.stringify({sku:f.sku,name:f.name,composition:f.composition,packSize:f.packSize,mrpPaise:Math.round(Number(f.mrp)*100),dealerPaise:Math.round(Number(f.dealer)*100),chemistPaise:Math.round(Number(f.chemist)*100)})});msg('Product created.');await refreshData();go('products')}catch(err){msg(err.message,true)}});
+  d.innerHTML=`
+    <form id="productForm" class="card">
+      <h2>Add a product</h2>
+      <p class="muted">Enter all prices in rupees (₹).</p>
+
+      <label>SKU</label>
+      <input name="sku" required maxlength="60">
+
+      <label>Product name</label>
+      <input name="name" required maxlength="150">
+
+      <label>Composition</label>
+      <input name="composition" maxlength="250">
+
+      <label>Pack size</label>
+      <input name="packSize" maxlength="100">
+
+      <div class="grid">
+        <div>
+          <label>MRP (₹)</label>
+          <input name="mrp" type="number" min="0" max="1000000" step="0.01" required>
+        </div>
+        <div>
+          <label>Dealer price (₹)</label>
+          <input name="dealerPrice" type="number" min="0" max="1000000" step="0.01" required>
+        </div>
+        <div>
+          <label>Chemist price (₹)</label>
+          <input name="chemistPrice" type="number" min="0" max="1000000" step="0.01" required>
+        </div>
+      </div>
+
+      <p><button type="submit">Save product</button></p>
+    </form>`;
+
+  $('#productForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+
+    const form=e.currentTarget;
+    const button=form.querySelector('button[type="submit"]');
+    const f=Object.fromEntries(new FormData(form));
+
+    const mrp=Number(f.mrp);
+    const dealerPrice=Number(f.dealerPrice);
+    const chemistPrice=Number(f.chemistPrice);
+
+    if(![mrp,dealerPrice,chemistPrice].every(n=>Number.isFinite(n)&&n>=0)){
+      msg('Please enter valid prices in rupees.',true);
+      return;
+    }
+
+    button.disabled=true;
+
+    try{
+      await api('/products',{
+        method:'POST',
+        body:JSON.stringify({
+          sku:f.sku.trim(),
+          name:f.name.trim(),
+          composition:f.composition.trim(),
+          packSize:f.packSize.trim(),
+          mrp,
+          dealerPrice,
+          chemistPrice
+        })
+      });
+
+      msg('Product created successfully.');
+      await refreshData();
+      go('products');
+    }catch(err){
+      msg(err.message,true);
+    }finally{
+      button.disabled=false;
+    }
+  });
 }
+
 function renderUsers(d){
- d.innerHTML=`<div class="card"><h2>User approvals</h2><button onclick="refreshAndRender()">Refresh</button>${!users.length?'<p class="muted">No users returned by the API.</p>':`<div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Business</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>${users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.businessName||'—')}</td><td>${esc(u.role)}</td><td>${esc(u.status)}</td><td><select id="user-${esc(u.id)}">${['PENDING','APPROVED','REJECTED','SUSPENDED'].map(s=>`<option ${u.status===s?'selected':''}>${s}</option>`).join('')}</select><button onclick="updateUser('${esc(u.id)}')">Save</button></td></tr>`).join('')}</tbody></table></div>`}</div>`;
+  d.innerHTML=`
+    <div class="card">
+      <h2>User approvals</h2>
+      <button onclick="refreshAndRender()">Refresh</button>
+      ${!users.length?'<p class="muted">No users returned by the API.</p>':`
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Business</th><th>Role</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              ${users.map(u=>`
+                <tr>
+                  <td>${esc(u.name)}</td>
+                  <td>${esc(u.email)}</td>
+                  <td>${esc(u.businessName||'—')}</td>
+                  <td>${esc(u.role)}</td>
+                  <td>${esc(u.status)}</td>
+                  <td>
+                    <select id="user-${esc(u.id)}">
+                      ${['PENDING','APPROVED','REJECTED','SUSPENDED'].map(s=>`<option value="${s}" ${u.status===s?'selected':''}>${s}</option>`).join('')}
+                    </select>
+                    <button onclick="updateUser('${esc(u.id)}')">Save</button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`}
+    </div>`;
 }
-async function updateUser(id){try{await api('/admin/users/'+encodeURIComponent(id)+'/status',{method:'PATCH',body:JSON.stringify({status:$('#user-'+id).value})});msg('User status updated.');await refreshAndRender()}catch(e){msg(e.message,true)}}
+
+async function updateUser(id){
+  try{
+    await api('/admin/users/'+encodeURIComponent(id)+'/status',{
+      method:'PATCH',
+      body:JSON.stringify({status:$('#user-'+id).value})
+    });
+    msg('User status updated.');
+    await refreshAndRender();
+  }catch(e){
+    msg(e.message,true);
+  }
+}
+
 function renderDocuments(d){
- d.innerHTML=`<div class="card"><h2>Licence documents</h2><button onclick="refreshAndRender()">Refresh</button>${!documents.length?'<p class="muted">No documents returned by the API.</p>':`<div class="tablewrap"><table><thead><tr><th>File</th><th>User</th><th>Status</th><th>Review note</th><th>Action</th></tr></thead><tbody>${documents.map(x=>`<tr><td>${esc(x.originalName)}</td><td>${esc(x.user?.email||x.userId)}</td><td>${esc(x.reviewStatus)}</td><td><input id="note-${esc(x.id)}" value="${esc(x.reviewNote||'')}" maxlength="500"></td><td><select id="doc-${esc(x.id)}"><option>PENDING</option><option>APPROVED</option><option>REJECTED</option></select><button onclick="reviewDoc('${esc(x.id)}')">Save review</button></td></tr>`).join('')}</tbody></table></div>`}</div>`;
+  d.innerHTML=`
+    <div class="card">
+      <h2>Licence documents</h2>
+      <button onclick="refreshAndRender()">Refresh</button>
+      ${!documents.length?'<p class="muted">No documents returned by the API.</p>':`
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>File</th><th>User</th><th>Status</th><th>Review note</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              ${documents.map(x=>`
+                <tr>
+                  <td>${esc(x.originalName)}</td>
+                  <td>${esc(x.user?.email||x.userId)}</td>
+                  <td>${esc(x.reviewStatus)}</td>
+                  <td><input id="note-${esc(x.id)}" value="${esc(x.reviewNote||'')}" maxlength="500"></td>
+                  <td>
+                    <select id="doc-${esc(x.id)}">
+                      ${['PENDING','APPROVED','REJECTED'].map(s=>`<option value="${s}" ${x.reviewStatus===s?'selected':''}>${s}</option>`).join('')}
+                    </select>
+                    <button onclick="reviewDoc('${esc(x.id)}')">Save review</button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`}
+    </div>`;
 }
-async function reviewDoc(id){try{await api('/admin/documents/'+encodeURIComponent(id)+'/review',{method:'PATCH',body:JSON.stringify({reviewStatus:$('#doc-'+id).value,reviewNote:$('#note-'+id).value})});msg('Document review saved.');await refreshAndRender()}catch(e){msg(e.message,true)}}
-(async()=>{if(token){try{await startApp()}catch(e){logout();msg('Please sign in again: '+e.message,true)}}})();
+
+async function reviewDoc(id){
+  try{
+    await api('/admin/documents/'+encodeURIComponent(id)+'/review',{
+      method:'PATCH',
+      body:JSON.stringify({
+        reviewStatus:$('#doc-'+id).value,
+        reviewNote:$('#note-'+id).value
+      })
+    });
+    msg('Document review saved.');
+    await refreshAndRender();
+  }catch(e){
+    msg(e.message,true);
+  }
+}
+
+(async()=>{
+  if(token){
+    try{
+      await startApp();
+    }catch(e){
+      logout();
+      msg('Please sign in again: '+e.message,true);
+    }
+  }
+})();
 </script>
 </body>
 </html>
