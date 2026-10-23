@@ -218,60 +218,105 @@ app.get("/api/health/db", asyncRoute(async (_req, res) => {
   res.json({ ok: true, database: "connected" });
 }));
 
-// Registration
-app.post("/api/auth/register", authLimiter, asyncRoute(async (req, res) => {
-  const {
-    name, email, password, phone, role,
-    businessName, drugLicenseNo, gstin, address
-  } = req.body || {};
 
-  if (!name?.trim() || !email?.trim() || !password) {
-    return res.status(400).json({
-      error: "Name, email and password are required."
-    });
-  }
+ // Registration with private licence-document uploads
+app.post(
+  "/api/auth/register",
+  authLimiter,
+  upload.array("documents", 5),
+  asyncRoute(async (req, res) => {
+    const files = req.files || [];
 
-  if (String(password).length < 10 || String(password).length > 128) {
-    return res.status(400).json({
-      error: "Password must be 10 to 128 characters."
-    });
-  }
+    const removeUploadedFiles = () => {
+      for (const file of files) {
+        fs.unlink(file.path, () => {});
+      }
+    };
 
-  if (!["CHEMIST", "DEALER"].includes(role)) {
-    return res.status(400).json({
-      error: "Registration role must be CHEMIST or DEALER."
-    });
-  }
+    try {
+      const {
+        name, email, password, phone, role,
+        businessName, drugLicenseNo, gstin, address
+      } = req.body || {};
 
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const existing = await prisma.user.findUnique({
-    where: { email: normalizedEmail }
-  });
+      if (!name?.trim() || !email?.trim() || !password) {
+        removeUploadedFiles();
+        return res.status(400).json({
+          error: "Name, email and password are required."
+        });
+      }
 
-  if (existing) {
-    return res.status(409).json({ error: "Email already registered." });
-  }
+      if (String(password).length < 10 || String(password).length > 128) {
+        removeUploadedFiles();
+        return res.status(400).json({
+          error: "Password must be 10 to 128 characters."
+        });
+      }
 
-  const user = await prisma.user.create({
-    data: {
-      name: String(name).trim(),
-      email: normalizedEmail,
-      passwordHash: await bcrypt.hash(password, 12),
-      phone: phone ? String(phone).trim() : null,
-      role,
-      status: "PENDING",
-      businessName: businessName ? String(businessName).trim() : null,
-      drugLicenseNo: drugLicenseNo ? String(drugLicenseNo).trim() : null,
-      gstin: gstin ? String(gstin).trim() : null,
-      address: address ? String(address).trim() : null
+      if (!["CHEMIST", "DEALER"].includes(role)) {
+        removeUploadedFiles();
+        return res.status(400).json({
+          error: "Registration role must be CHEMIST or DEALER."
+        });
+      }
+
+      const normalizedEmail = String(email).trim().toLowerCase();
+
+      const existing = await prisma.user.findUnique({
+        where: { email: normalizedEmail }
+      });
+
+      if (existing) {
+        removeUploadedFiles();
+        return res.status(409).json({
+          error: "Email already registered."
+        });
+      }
+
+      const user = await prisma.user.create({
+        data: {
+          name: String(name).trim(),
+          email: normalizedEmail,
+          passwordHash: await bcrypt.hash(password, 12),
+          phone: phone ? String(phone).trim() : null,
+          role,
+          status: "PENDING",
+          businessName: businessName ? String(businessName).trim() : null,
+          drugLicenseNo: drugLicenseNo ? String(drugLicenseNo).trim() : null,
+          gstin: gstin ? String(gstin).trim() : null,
+          address: address ? String(address).trim() : null,
+          documents: {
+            create: files.map(file => ({
+              originalName: path.basename(file.originalname).slice(0, 255),
+              storedName: file.filename,
+              mimeType: file.mimetype,
+              sizeBytes: file.size,
+              reviewStatus: "PENDING"
+            }))
+          }
+        }
+      });
+
+      await logAction(
+        { user: { id: user.id, role: user.role } },
+        "USER_REGISTERED",
+        "User",
+        user.id,
+        { uploadedDocuments: files.length }
+      );
+
+      return res.status(201).json({
+        message: "Registration submitted. Wait for admin approval.",
+        user: cleanUser(user),
+        documentsUploaded: files.length
+      });
+    } catch (error) {
+      removeUploadedFiles();
+      throw error;
     }
-  });
+  })
+);
 
-  res.status(201).json({
-    message: "Registration submitted. Wait for admin approval.",
-    user: cleanUser(user)
-  });
-}));
 
 // Login
 app.post("/api/auth/login", authLimiter, asyncRoute(async (req, res) => {
