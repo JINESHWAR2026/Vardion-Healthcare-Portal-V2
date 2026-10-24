@@ -1,0 +1,741 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vardion Healthcare Portal</title>
+<style>
+:root{--navy:#10233f;--blue:#1769aa;--light:#f3f6fb;--border:#dce4ee;--green:#16835d}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--light);color:#1b2b40}
+header{background:var(--navy);color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;color:#c8d8ed}
+button{background:var(--blue);color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:600;margin:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.secondary{background:#e7eef8;color:#173756}
+.danger{background:#b42335}
+.success{background:var(--green)}
+main{max-width:1200px;margin:28px auto;padding:0 18px}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:0 3px 12px #12233d08}
+h2{margin-top:0;font-size:21px}
+h3{font-size:17px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:white}
+input[type=checkbox]{width:auto}
+input[type=file]{background:#f8fafc}
+label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.muted{color:#63738a;font-size:13px;line-height:1.6}
+.badge{display:inline-block;background:#e5f4ed;color:#126b4d;border-radius:20px;padding:5px 10px;font-size:12px}
+.hidden{display:none!important}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+nav button{background:#e7eef8;color:#173756}
+nav button.active{background:var(--blue);color:white}
+table{border-collapse:collapse;width:100%;min-width:650px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+th{background:#f5f8fc}
+.tablewrap{overflow-x:auto}
+.notice{padding:12px;border-radius:8px;background:#fff5db;color:#744c00;margin:12px 0;font-size:13px}
+#message{position:sticky;top:0;z-index:10;padding:12px;text-align:center;background:#e5f4ed;color:#126b4d}
+#message.error{background:#fde8e8;color:#9c2020}
+footer{text-align:center;padding:24px;color:#718096;font-size:12px}
+.stat{background:#f4f8fd;padding:16px;border-radius:10px}
+.stat strong{display:block;font-size:24px;margin-top:8px}
+.doc-actions{display:flex;gap:5px;flex-wrap:wrap}
+.doc-actions button{padding:8px 10px}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.detail-item{padding:12px;background:#f6f9fd;border-radius:8px;overflow-wrap:anywhere}
+.detail-item b{display:block;font-size:12px;color:#63738a;margin-bottom:5px}
+hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+.small{font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Vardion™ Healthcare</h1>
+    <p>Vardhaman Trading Co. · Healthcare Order Portal</p>
+  </div>
+  <div class="row" style="flex:0 0 auto">
+    <span id="who" class="muted" style="color:white"></span>
+    <button id="logout" class="secondary hidden" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div id="message" class="hidden" role="status"></div>
+
+<main>
+<section id="authArea">
+  <div class="card">
+    <h2>Welcome to Vardion Healthcare</h2>
+    <p class="muted">Sign in to manage products, orders and business account details.</p>
+    <div class="row">
+      <button id="loginTab" onclick="showAuth('login')">Login</button>
+      <button id="registerTab" class="secondary" onclick="showAuth('register')">Create account</button>
+    </div>
+  </div>
+
+  <form id="loginForm" class="card">
+    <h2>Account Login</h2>
+    <label>Email</label>
+    <input name="email" type="email" required autocomplete="username">
+    <label>Password</label>
+    <input name="password" type="password" required autocomplete="current-password">
+    <p class="muted">Your account must be approved by the company administrator before you can sign in.</p>
+    <button type="submit">Sign in</button>
+  </form>
+
+  <form id="registerForm" class="card hidden" enctype="multipart/form-data">
+    <h2>Business Registration</h2>
+    <div class="notice">Registration is for Chemists, Dealers/Wholesalers and Distributors. Admin accounts must be created securely by the system owner. Upload clear copies of your business documents.</div>
+
+    <label>Account type</label>
+    <select name="role" required>
+      <option value="CHEMIST">Chemist / Pharmacy</option>
+      <option value="DEALER">Dealer / Wholesaler</option>
+      <option value="DISTRIBUTOR">Distributor</option>
+    </select>
+
+    <label>Full name</label>
+    <input name="name" required maxlength="100">
+
+    <label>Business name</label>
+    <input name="businessName" required maxlength="150">
+
+    <label>Email</label>
+    <input name="email" type="email" required autocomplete="email">
+
+    <label>Phone</label>
+    <input name="phone" type="tel" maxlength="20">
+
+    <label>Drug licence number</label>
+    <input name="drugLicenseNo" required maxlength="100">
+
+    <label>GSTIN (if applicable)</label>
+    <input name="gstin" maxlength="20">
+
+    <label>Business address</label>
+    <textarea name="address" required rows="3" maxlength="500"></textarea>
+
+    <hr>
+    <h3>Upload Licence / Business Documents</h3>
+    <p class="muted">Upload up to 5 files. Accepted formats: PDF, JPG, JPEG, PNG. Maximum 5 MB per file.</p>
+
+    <label>Drug Licence / Other Supporting Documents</label>
+    <input id="registrationDocuments" name="documents" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+    <p id="selectedFiles" class="muted">No files selected.</p>
+
+    <label>Create password (minimum 12 characters)</label>
+    <input name="password" type="password" required minlength="12" autocomplete="new-password">
+
+    <button type="submit">Submit registration</button>
+    <p class="muted">After registration, wait for administrator approval before login. Keep your original documents available for verification.</p>
+  </form>
+</section>
+
+<section id="appArea" class="hidden">
+  <div class="grid" id="stats"></div>
+  <nav id="nav"></nav>
+  <section id="dashboard"></section>
+</section>
+</main>
+
+<footer>
+  Vardion™ Healthcare · Vardhaman Trading Co.<br>
+  Use only for authorised business accounts. Do not share passwords or access tokens.
+</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+let token=sessionStorage.getItem('vardion_token')||'';
+let me=null,products=[],orders=[],users=[],documents=[],myDocuments=[];
+let currentTab='overview', assignments=[];
+
+const money=p=>'₹'+(Number(p||0)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+
+function msg(t,error=false){
+  const e=$('#message');
+  e.textContent=t;
+  e.classList.remove('hidden','error');
+  if(error)e.classList.add('error');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>e.classList.add('hidden'),7000);
+}
+
+/* Important: do not force JSON Content-Type for FormData uploads. */
+async function api(url,options={}){
+  const headers={
+    ...(token?{Authorization:'Bearer '+token}:{}),
+    ...(options.headers||{})
+  };
+
+  if(options.body && !(options.body instanceof FormData)){
+    headers['Content-Type']='application/json';
+  }
+
+  const r=await fetch('/api'+url,{...options,headers});
+  const data=await r.json().catch(()=>({error:'Server returned an unreadable response'}));
+  if(!r.ok)throw new Error(data.error||data.message||'Request failed ('+r.status+')');
+  return data;
+}
+
+/* Download/view a private file through the authenticated API. */
+async function openDocument(id,mode='download'){
+  try{
+    const r=await fetch('/api/documents/'+encodeURIComponent(id)+'/download',{
+      headers:token?{Authorization:'Bearer '+token}:{}
+    });
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      throw new Error(d.error||d.message||'Could not access document ('+r.status+')');
+    }
+
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+
+    if(mode==='preview'){
+      const w=window.open(url,'_blank');
+      if(!w){
+        a.href=url;
+        a.target='_blank';
+        a.rel='noopener';
+        a.click();
+      }
+    }else{
+      const cd=r.headers.get('Content-Disposition')||'';
+      const match=cd.match(/filename="?([^";]+)"?/i);
+      a.href=url;
+      a.download=match?match[1]:'licence-document';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }catch(e){
+    msg(e.message,true);
+  }
+}
+
+function showAuth(which){
+  $('#loginForm').classList.toggle('hidden',which!=='login');
+  $('#registerForm').classList.toggle('hidden',which!=='register');
+  $('#loginTab').className=which==='login'?'':'secondary';
+  $('#registerTab').className=which==='register'?'':'secondary';
+}
+
+$('#registrationDocuments').addEventListener('change',e=>{
+  const files=Array.from(e.target.files||[]);
+  $('#selectedFiles').textContent=files.length
+    ?files.map(f=>f.name+' ('+(f.size/1024/1024).toFixed(2)+' MB)').join(', ')
+    :'No files selected.';
+});
+
+$('#loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const b=e.submitter;
+  b.disabled=true;
+  try{
+    const f=Object.fromEntries(new FormData(e.currentTarget));
+    const d=await api('/auth/login',{method:'POST',body:JSON.stringify(f)});
+    token=d.token;
+    sessionStorage.setItem('vardion_token',token);
+    await startApp();
+    msg('Login successful.');
+  }catch(err){
+    msg(err.message,true);
+  }finally{
+    b.disabled=false;
+  }
+});
+
+$('#registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const form=e.currentTarget;
+  const b=e.submitter;
+  const files=Array.from($('#registrationDocuments').files||[]);
+
+  if(files.length>5){
+    msg('You can upload a maximum of 5 documents.',true);
+    return;
+  }
+
+  const allowed=['application/pdf','image/jpeg','image/png'];
+  for(const f of files){
+    if(f.size>5*1024*1024){
+      msg('Each document must be 5 MB or smaller: '+f.name,true);
+      return;
+    }
+    if(!allowed.includes(f.type)){
+      msg('Unsupported file type: '+f.name+'. Use PDF, JPG or PNG.',true);
+      return;
+    }
+  }
+
+  b.disabled=true;
+  try{
+    const fd=new FormData(form);
+    const d=await api('/auth/register',{method:'POST',body:fd});
+    msg(d.message||'Registration submitted. Wait for approval.');
+    form.reset();
+    $('#selectedFiles').textContent='No files selected.';
+    showAuth('login');
+  }catch(err){
+    msg('Registration failed: '+err.message,true);
+  }finally{
+    b.disabled=false;
+  }
+});
+
+function logout(){
+  token='';
+  me=null;
+  products=[];
+  orders=[];
+  users=[];
+  documents=[];
+  myDocuments=[];
+  sessionStorage.removeItem('vardion_token');
+  $('#appArea').classList.add('hidden');
+  $('#authArea').classList.remove('hidden');
+  $('#logout').classList.add('hidden');
+  $('#who').textContent='';
+  showAuth('login');
+  msg('You have been logged out.');
+}
+
+async function startApp(){
+  me=await api('/me');
+  $('#authArea').classList.add('hidden');
+  $('#appArea').classList.remove('hidden');
+  $('#logout').classList.remove('hidden');
+  $('#who').textContent=(me.name||me.email)+' · '+me.role;
+  currentTab='overview';
+  await refreshData();
+  render();
+}
+
+async function refreshData(){
+  const results=await Promise.allSettled([api('/products'),api('/orders')]);
+
+  products=results[0].status==='fulfilled'
+    ?(Array.isArray(results[0].value)?results[0].value:results[0].value.products||[])
+    :[];
+
+  orders=results[1].status==='fulfilled'
+    ?(Array.isArray(results[1].value)?results[1].value:results[1].value.orders||[])
+    :[];
+
+  const docsResult=await Promise.allSettled([api('/documents')]);
+  myDocuments=docsResult[0].status==='fulfilled'
+    ?(Array.isArray(docsResult[0].value)?docsResult[0].value:docsResult[0].value.documents||[])
+    :[];
+
+  if(me.role==='ADMIN'){
+    const r=await Promise.allSettled([api('/admin/users'),api('/documents'),api('/admin/assignments')]);
+
+    users=r[0].status==='fulfilled'
+      ?(Array.isArray(r[0].value)?r[0].value:r[0].value.users||[])
+      :[];
+
+    documents=r[1].status==='fulfilled'
+      ?(Array.isArray(r[1].value)?r[1].value:r[1].value.documents||[])
+      :[];
+    assignments=r[2].status==='fulfilled'?(Array.isArray(r[2].value)?r[2].value:r[2].value.assignments||r[2].value.users||[]):[];
+  }
+}
+
+const tabs=[
+  ['overview','Overview'],
+  ['products','Products'],
+  ['orders','Orders'],
+  ['profile','My account'],
+  ['notifications','Notifications']
+];
+
+function render(){
+  const isAdmin=me.role==='ADMIN';
+  const isDealer=me.role==='DEALER'||me.role==='DISTRIBUTOR';
+
+  const menu=isAdmin
+    ?[...tabs,['users','User approvals'],['documents','Licence documents'],['addproduct','Add product']]
+    :isDealer
+      ?[...tabs,['assigned','Dealer orders']]
+      :[...tabs];
+
+  $('#nav').innerHTML=menu.map(([id,label])=>
+    `<button class="${currentTab===id?'active':''}" onclick="go('${id}')">${label}</button>`
+  ).join('');
+
+  $('#stats').innerHTML=`
+    <div class="stat">Account status<strong style="font-size:18px">${esc(me.status||'APPROVED')}</strong></div>
+    <div class="stat">Available products<strong>${products.length}</strong></div>
+    <div class="stat">Orders<strong>${orders.length}</strong></div>`;
+
+  const d=$('#dashboard');
+
+  if(currentTab==='overview'){
+    d.innerHTML=`
+      <div class="card">
+        <h2>Welcome, ${esc(me.name)}</h2>
+        <p>Your role: <span class="badge">${esc(me.role)}</span></p>
+        <p class="muted">Use the menu above to browse products, manage orders and review your account.</p>
+      </div>
+      <div class="grid">
+        <div class="card"><h3>Products</h3><p class="muted">View active products and available prices.</p><button onclick="go('products')">Browse products</button></div>
+        <div class="card"><h3>Orders</h3><p class="muted">View order history and current status.</p><button onclick="go('orders')">View orders</button></div>
+      </div>`;
+  }else if(currentTab==='products'){
+    renderProducts(d);
+  }else if(currentTab==='orders'||currentTab==='assigned'){
+    renderOrders(d);
+  }else if(currentTab==='profile'){
+    renderProfile(d);
+  }else if(currentTab==='addproduct'){
+    renderAddProduct(d);
+  }else if(currentTab==='users'){
+    renderUsers(d);
+  }else if(currentTab==='documents'){
+    renderDocuments(d);
+  }else if(currentTab==='assignments'){
+    renderAssignments(d);
+  }else if(currentTab==='notifications'){
+    renderNotifications(d);
+  }
+}
+
+function go(t){
+  currentTab=t;
+  render();
+}
+
+function renderProfile(d){
+  d.innerHTML=`
+    <div class="card">
+      <h2>My account</h2>
+      <div class="detail-grid">
+        ${detail('Full name',me.name)}
+        ${detail('Email',me.email)}
+        ${detail('Phone',me.phone)}
+        ${detail('Role',me.role)}
+        ${detail('Account status',me.status)}
+        ${detail('Business name',me.businessName)}
+        ${detail('Drug licence number',me.drugLicenseNo)}
+        ${detail('GSTIN',me.gstin)}
+        ${detail('Business address',me.address)}
+      </div>
+      <form id="profileEditForm" class="card"><h3>Edit account details</h3>
+      <label>Full name</label><input name="name" required maxlength="100" value="${esc(me.name||'')}">
+      <label>Business name</label><input name="businessName" required maxlength="150" value="${esc(me.businessName||'')}">
+      <label>Phone</label><input name="phone" maxlength="20" value="${esc(me.phone||'')}">
+      <label>Drug licence number</label><input name="drugLicenseNo" required maxlength="100" value="${esc(me.drugLicenseNo||'')}">
+      <label>GSTIN</label><input name="gstin" maxlength="20" value="${esc(me.gstin||'')}">
+      <label>Business address</label><textarea name="address" rows="3" required maxlength="500">${esc(me.address||'')}</textarea>
+      <button type="submit">Save and resubmit for review</button></form>
+      <form id="correctionRequestForm" class="card"><h3>Request account correction</h3><label>Correction request</label><textarea name="note" rows="3" required maxlength="1000" placeholder="Describe the correction needed"></textarea><button type="submit">Send correction request</button></form>
+    </div>
+    <div class="card">
+      <h2>My uploaded documents</h2>
+      ${!myDocuments.length?'<p class="muted">No documents are currently available for this account. If you uploaded documents during registration, contact the administrator if they are missing.</p>':`
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Review status</th><th>Review note</th><th>Action</th></tr></thead>
+          <tbody>${myDocuments.map(x=>`
+            <tr>
+              <td>${esc(x.originalName||x.fileName||'Document')}</td>
+              <td>${esc(x.reviewStatus||'PENDING')}</td>
+              <td>${esc(x.reviewNote||'—')}</td>
+              <td><button onclick="openDocument('${esc(x.id)}','preview')">Preview</button><button onclick="openDocument('${esc(x.id)}','download')">Download</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>`}
+      <button class="secondary" onclick="refreshAndRender()">Refresh documents</button>
+    </div>`;
+  const pf=$('#profileEditForm');
+  if(pf)pf.addEventListener('submit',async e=>{e.preventDefault();try{me=await api('/me/profile',{method:'PATCH',body:JSON.stringify(Object.fromEntries(new FormData(pf)))});msg('Profile saved and submitted for administrator review.');await refreshData();render();}catch(err){msg(err.message,true);}});
+  const cf=$('#correctionRequestForm');
+  if(cf)cf.addEventListener('submit',async e=>{e.preventDefault();try{await api('/me/correction-request',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(cf)))});cf.reset();msg('Correction request sent to administrator.');}catch(err){msg(err.message,true);}});
+}
+
+function detail(label,value){
+  return `<div class="detail-item"><b>${esc(label)}</b>${esc(value||'—')}</div>`;
+}
+
+function renderProducts(d){
+  if(me.role==='DEALER'||me.role==='DISTRIBUTOR'){
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Dealer prices are displayed where supported by the API.</p>${productTable(true)}</div>`;
+  }else if(me.role==='ADMIN'){
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2>${productTable(false)}<button onclick="go('addproduct')">Add product</button></div>`;
+  }else{
+    d.innerHTML=`<div class="card"><h2>Product catalogue</h2><p class="muted">Select products and quantities, then submit your order.</p>${productTable(false,true)}</div>`;
+  }
+}
+
+function productTable(dealer=false,orderable=false){
+  if(!products.length)return '<p class="muted">No active products returned by the server yet.</p>';
+
+  return `
+    <div class="tablewrap"><table>
+      <thead><tr><th>Product</th><th>SKU</th><th>Composition</th><th>Pack</th><th>Price</th>${orderable?'<th>Quantity</th>':''}</tr></thead>
+      <tbody>${products.map(p=>`
+        <tr>
+          <td>${esc(p.name)}</td><td>${esc(p.sku)}</td><td>${esc(p.composition||'—')}</td>
+          <td>${esc(p.packSize||'—')}</td><td>${money(dealer?p.dealerPaise:p.chemistPaise)}</td>
+          ${orderable?`<td><input aria-label="Quantity for ${esc(p.name)}" type="number" min="0" max="10000" value="0" id="qty-${esc(p.id)}" style="width:90px"></td>`:''}
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+    ${orderable?`
+      <h3>Delivery details</h3>
+      <label>Delivery address</label><textarea id="deliveryAddress" rows="2" required>${esc(me.address||'')}</textarea>
+      <label>Order notes (optional)</label><textarea id="orderNotes" rows="2"></textarea>
+      <p><button onclick="placeOrder()">Place order</button></p>`:''}`;
+}
+
+async function placeOrder(){
+  const items=products.map(p=>({productId:p.id,quantity:Number($('#qty-'+p.id)?.value||0)})).filter(x=>x.quantity>0);
+  if(!items.length)return msg('Please select at least one product and quantity.',true);
+  if(items.some(x=>!Number.isInteger(x.quantity)||x.quantity<1||x.quantity>10000))return msg('Enter valid quantities.',true);
+  const deliveryAddress=$('#deliveryAddress').value.trim();
+  if(!deliveryAddress)return msg('Delivery address is required.',true);
+
+  try{
+    const d=await api('/orders',{method:'POST',body:JSON.stringify({items,deliveryAddress,notes:$('#orderNotes').value.trim()})});
+    msg(d.message||'Order submitted.');
+    await refreshData();
+    go('orders');
+  }catch(e){msg(e.message,true);}
+}
+
+function renderOrders(d){
+  if(!orders.length){
+    d.innerHTML='<div class="card"><h2>Orders</h2><p class="muted">No orders found for this account.</p><button onclick="refreshAndRender()">Refresh</button></div>';
+    return;
+  }
+
+  const isAdmin=me.role==='ADMIN';
+  const isDealer=me.role==='DEALER'||me.role==='DISTRIBUTOR';
+  const editableStatuses=['ACCEPTED','PACKED','DISPATCHED','DELIVERED','CANCELLED'];
+
+  d.innerHTML=`
+    <div class="card">
+      <h2>${isDealer?'Dealer orders':'Order history'}</h2><button onclick="refreshAndRender()">Refresh orders</button>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Payment</th><th>Total</th><th>Delivery</th>${isAdmin||isDealer?'<th>Update status</th>':''}</tr></thead>
+        <tbody>${orders.map(o=>`
+          <tr>
+            <td>${esc(o.orderNo||o.id)}</td>
+            <td>${esc(o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN'):'—')}</td>
+            <td>${esc(o.status)}</td><td>${esc(o.paymentStatus||'PENDING')}</td><td>${money(o.totalPaise)}</td>
+            <td>${esc(o.deliveryAddress||'—')}</td>
+            ${isAdmin||isDealer?`<td><select id="status-${esc(o.id)}"><option value="${esc(o.status)}" selected>${esc(o.status)}</option>${editableStatuses.filter(s=>s!==o.status).map(s=>`<option value="${s}">${s}</option>`).join('')}</select><button onclick="updateStatus('${esc(o.id)}')">Save</button></td>`:''}
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+}
+
+async function updateStatus(id){
+  try{
+    await api('/orders/'+encodeURIComponent(id)+'/status',{method:'PATCH',body:JSON.stringify({status:$('#status-'+id).value})});
+    msg('Order status updated.');
+    await refreshAndRender();
+  }catch(e){msg(e.message,true);}
+}
+
+async function refreshAndRender(){
+  try{
+    await refreshData();
+    render();
+    msg('Data refreshed.');
+  }catch(e){msg(e.message,true);}
+}
+
+function renderAddProduct(d){
+  d.innerHTML=`
+    <form id="productForm" class="card">
+      <h2>Add a product</h2><p class="muted">Enter all prices in rupees (₹).</p>
+      <label>SKU</label><input name="sku" required maxlength="60">
+      <label>Product name</label><input name="name" required maxlength="150">
+      <label>Composition</label><input name="composition" maxlength="250">
+      <label>Pack size</label><input name="packSize" maxlength="100">
+      <div class="grid">
+        <div><label>MRP (₹)</label><input name="mrp" type="number" min="0" max="1000000" step="0.01" required></div>
+        <div><label>Dealer price (₹)</label><input name="dealerPrice" type="number" min="0" max="1000000" step="0.01" required></div>
+        <div><label>Chemist price (₹)</label><input name="chemistPrice" type="number" min="0" max="1000000" step="0.01" required></div>
+      </div>
+      <p><button type="submit">Save product</button></p>
+    </form>`;
+
+  $('#productForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const form=e.currentTarget,button=form.querySelector('button[type="submit"]');
+    const f=Object.fromEntries(new FormData(form));
+    const mrp=Number(f.mrp),dealerPrice=Number(f.dealerPrice),chemistPrice=Number(f.chemistPrice);
+    if(![mrp,dealerPrice,chemistPrice].every(n=>Number.isFinite(n)&&n>=0))return msg('Please enter valid prices in rupees.',true);
+    button.disabled=true;
+    try{
+      await api('/products',{method:'POST',body:JSON.stringify({
+        sku:f.sku.trim(),name:f.name.trim(),composition:f.composition.trim(),packSize:f.packSize.trim(),mrp,dealerPrice,chemistPrice
+      })});
+      msg('Product created successfully.');
+      await refreshData();
+      go('products');
+    }catch(err){msg(err.message,true);}
+    finally{button.disabled=false;}
+  });
+}
+
+/* Admin: view all available applicant details. */
+function renderUsers(d){
+  d.innerHTML=`
+    <div class="card">
+      <h2>User approvals</h2>
+      <p class="muted">Select View details to inspect the applicant profile. Change status only after reviewing the submitted information and documents.</p>
+      <button onclick="refreshAndRender()">Refresh</button>
+      ${!users.length?'<p class="muted">No users returned by the API.</p>':`
+      <div class="tablewrap"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Business</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${users.map(u=>`
+          <tr>
+            <td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.businessName||'—')}</td>
+            <td>${esc(u.role)}</td><td>${esc(u.status)}</td>
+            <td>
+              <button onclick="viewUser('${esc(u.id)}')">View details</button>
+              <select id="user-${esc(u.id)}">
+                ${['PENDING','APPROVED','REJECTED','SUSPENDED'].map(s=>`<option value="${s}" ${u.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+              <button onclick="updateUser('${esc(u.id)}')">Save status</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+      <div id="userDetails" class="card hidden" style="margin-top:20px"></div>
+    </div>`;
+}
+
+function viewUser(id){
+  const u=users.find(x=>String(x.id)===String(id));
+  if(!u)return msg('User details not found. Refresh the list.',true);
+
+  const el=$('#userDetails');
+  el.classList.remove('hidden');
+  el.innerHTML=`
+    <h2>Applicant full details</h2>
+    <div class="detail-grid">
+      ${detail('Full name',u.name)}
+      ${detail('Email',u.email)}
+      ${detail('Phone',u.phone)}
+      ${detail('Business name',u.businessName)}
+      ${detail('Account type',u.role)}
+      ${detail('Account status',u.status)}
+      ${detail('Drug licence number',u.drugLicenseNo)}
+      ${detail('GSTIN',u.gstin)}
+      ${detail('Business address',u.address)}
+      ${detail('Registered on',u.createdAt?new Date(u.createdAt).toLocaleString('en-IN'):'—')}
+      ${detail('Last updated',u.updatedAt?new Date(u.updatedAt).toLocaleString('en-IN'):'—')}
+    </div>
+    <hr><h3>Documents submitted by this applicant</h3>
+    ${renderUserDocsInline(u)}
+    <button class="secondary" onclick="$('#userDetails').classList.add('hidden')">Close details</button>`;
+}
+
+function renderUserDocsInline(u){
+  const list=documents.filter(x=>String(x.userId)===String(u.id)||String(x.user?.id)===String(u.id));
+  if(!list.length)return '<p class="muted">No documents are associated with this user in the documents API.</p>';
+  return `<div class="tablewrap"><table>
+    <thead><tr><th>Document</th><th>Review status</th><th>Note</th><th>Actions</th></tr></thead>
+    <tbody>${list.map(x=>`
+      <tr><td>${esc(x.originalName||'Document')}</td><td>${esc(x.reviewStatus||'PENDING')}</td>
+      <td>${esc(x.reviewNote||'—')}</td>
+      <td><button onclick="openDocument('${esc(x.id)}','preview')">Preview</button><button onclick="openDocument('${esc(x.id)}','download')">Download</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+async function updateUser(id){
+  try{
+    await api('/admin/users/'+encodeURIComponent(id)+'/status',{method:'PATCH',body:JSON.stringify({status:$('#user-'+id).value})});
+    msg('User status updated.');
+    await refreshAndRender();
+  }catch(e){msg(e.message,true);}
+}
+
+/* Admin: private document preview/download and review workflow. */
+function renderDocuments(d){
+  d.innerHTML=`
+    <div class="card">
+      <h2>Licence documents</h2>
+      <p class="muted">Preview or download the uploaded file before reviewing it. Use a correction note when rejecting a document.</p>
+      <button onclick="refreshAndRender()">Refresh</button>
+      ${!documents.length?'<p class="muted">No documents returned by the API. Check registration upload and the server documents endpoint.</p>':`
+      <div class="tablewrap"><table>
+        <thead><tr><th>File</th><th>User</th><th>Status</th><th>Review note</th><th>Review action</th><th>File action</th></tr></thead>
+        <tbody>${documents.map(x=>`
+          <tr>
+            <td>${esc(x.originalName||x.fileName||'Document')}</td>
+            <td>${esc(x.user?.email||x.user?.name||x.userId||'—')}</td>
+            <td>${esc(x.reviewStatus||'PENDING')}</td>
+            <td><input id="note-${esc(x.id)}" value="${esc(x.reviewNote||'')}" maxlength="500" placeholder="Correction note"></td>
+            <td>
+              <select id="doc-${esc(x.id)}">
+                ${['PENDING','APPROVED','REJECTED'].map(s=>`<option value="${s}" ${x.reviewStatus===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+              <button onclick="reviewDoc('${esc(x.id)}')">Save review</button>
+            </td>
+            <td><div class="doc-actions">
+              <button onclick="openDocument('${esc(x.id)}','preview')">Preview</button>
+              <button onclick="openDocument('${esc(x.id)}','download')">Download</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>`;
+}
+
+async function reviewDoc(id){
+  const status=$('#doc-'+id).value;
+  const note=$('#note-'+id).value.trim();
+
+  if(status==='REJECTED'&&!note){
+    return msg('Please enter a correction/rejection note before rejecting the document.',true);
+  }
+
+  try{
+    await api('/admin/documents/'+encodeURIComponent(id)+'/review',{
+      method:'PATCH',body:JSON.stringify({reviewStatus:status,reviewNote:note})
+    });
+    msg('Document review saved.');
+    await refreshAndRender();
+  }catch(e){msg(e.message,true);}
+}
+
+function renderAssignments(d){
+  const people=users.filter(u=>u.role!=='ADMIN');
+  const opts=(role,selected)=>'<option value="">— Unassigned —</option>'+people.filter(u=>u.role===role).map(u=>`<option value="${esc(u.id)}" ${String(selected||'')===String(u.id)?'selected':''}>${esc(u.businessName||u.name)} (${esc(u.email)})</option>`).join('');
+  d.innerHTML=`<div class="card"><h2>Chemist / Dealer / Distributor assignments</h2><p class="muted">Assign each chemist to a dealer or distributor. Assign a dealer to a parent distributor where needed.</p><div class="tablewrap"><table><thead><tr><th>User</th><th>Role</th><th>Assigned dealer</th><th>Assigned distributor</th><th>Parent distributor (for dealer)</th><th>Save</th></tr></thead><tbody>${people.map(u=>`<tr><td>${esc(u.businessName||u.name)}<br><span class="muted">${esc(u.email)}</span></td><td>${esc(u.role)}</td><td><select id="as-dealer-${esc(u.id)}" ${u.role!=='CHEMIST'?'disabled':''}>${opts('DEALER',u.assignedDealerId)}</select></td><td><select id="as-dist-${esc(u.id)}" ${u.role!=='CHEMIST'?'disabled':''}>${opts('DISTRIBUTOR',u.assignedDistributorId)}</select></td><td><select id="as-parent-${esc(u.id)}" ${u.role!=='DEALER'?'disabled':''}>${opts('DISTRIBUTOR',u.parentDistributorId)}</select></td><td><button onclick="saveAssignment('${esc(u.id)}','${esc(u.role)}')">Save</button></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+async function saveAssignment(id,role){try{await api('/admin/users/'+encodeURIComponent(id)+'/assignment',{method:'PATCH',body:JSON.stringify({assignedDealerId:$('#as-dealer-'+id)?.value||null,assignedDistributorId:$('#as-dist-'+id)?.value||null,parentDistributorId:$('#as-parent-'+id)?.value||null})});msg('Assignment saved.');await refreshData();render();}catch(e){msg(e.message,true);}}
+async function renderNotifications(d){try{const result=await api('/notifications');const list=Array.isArray(result)?result:result.notifications||[];d.innerHTML=`<div class="card"><h2>Notifications</h2><button onclick="markAllNotificationsRead()">Mark all as read</button>${!list.length?'<p class="muted">No notifications yet.</p>':list.map(n=>`<div class="detail-item"><b>${esc(n.title||n.type||'Notification')} ${n.readAt?'':' · NEW'}</b><p>${esc(n.message||'')}</p><span class="muted">${esc(n.createdAt?new Date(n.createdAt).toLocaleString('en-IN'):'')}</span>${!n.readAt?`<button onclick="markNotificationRead('${esc(n.id)}')">Mark read</button>`:''}</div>`).join('')}</div>`;}catch(e){d.innerHTML=`<div class="card"><h2>Notifications</h2><p class="muted">${esc(e.message)}</p></div>`;}}
+async function markNotificationRead(id){try{await api('/notifications/'+encodeURIComponent(id)+'/read',{method:'PATCH'});await renderNotifications($('#dashboard'));}catch(e){msg(e.message,true);}}
+async function markAllNotificationsRead(){try{await api('/notifications/read-all',{method:'POST'});await renderNotifications($('#dashboard'));msg('Notifications marked as read.');}catch(e){msg(e.message,true);}}
+
+(async()=>{
+  if(token){
+    try{
+      await startApp();
+    }catch(e){
+      logout();
+      msg('Please sign in again: '+e.message,true);
+    }
+  }
+})();
+</script>
+</body>
+</html>
