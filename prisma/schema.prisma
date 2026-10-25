@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,6 +6,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -43,35 +45,35 @@ enum OrderType {
 }
 
 model User {
-  id             String     @id @default(cuid())
-  name           String
-  email          String     @unique
-  phone          String?
-  passwordHash   String
-  role           Role
-  status         UserStatus @default(PENDING)
-  businessName   String?
-  drugLicenseNo  String?
-  gstin          String?
-  address        String?
-  correctionNote String?
+  id                     String     @id @default(cuid())
+  name                   String
+  email                  String     @unique
+  phone                  String?
+  passwordHash           String
+  role                   Role
+  status                 UserStatus @default(PENDING)
+  businessName           String?
+  drugLicenseNo          String?
+  gstin                  String?
+  address                String?
+  correctionNote         String?
   correctionRequestedAt DateTime?
-  assignedDealerId String?
-  assignedDistributorId String?
-  parentDistributorId String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  assignedDealer User? @relation("ChemistDealer", fields: [assignedDealerId], references: [id], onDelete: SetNull)
-  assignedChemists User[] @relation("ChemistDealer")
-  assignedDistributor User? @relation("ChemistDistributor", fields: [assignedDistributorId], references: [id], onDelete: SetNull)
-  distributorChemists User[] @relation("ChemistDistributor")
-  parentDistributor User? @relation("DealerDistributor", fields: [parentDistributorId], references: [id], onDelete: SetNull)
-  linkedDealers User[] @relation("DealerDistributor")
-  notifications Notification[]
-  documents      LicenseDocument[]
-  ordersAsChemist Order[]   @relation("ChemistOrders")
-  ordersAsDealer  Order[]   @relation("DealerOrders")
-  auditEvents    AuditLog[] @relation("ActorAudit")
+  assignedDealerId       String?
+  assignedDistributorId  String?
+  parentDistributorId    String?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  assignedDealer         User?      @relation("ChemistDealer", fields: [assignedDealerId], references: [id], onDelete: SetNull)
+  assignedChemists       User[]     @relation("ChemistDealer")
+  assignedDistributor    User?      @relation("ChemistDistributor", fields: [assignedDistributorId], references: [id], onDelete: SetNull)
+  distributorChemists    User[]     @relation("ChemistDistributor")
+  parentDistributor      User?      @relation("DealerDistributor", fields: [parentDistributorId], references: [id], onDelete: SetNull)
+  linkedDealers           User[]     @relation("DealerDistributor")
+  notifications          Notification[]
+  documents              LicenseDocument[]
+  ordersAsChemist        Order[]    @relation("ChemistOrders")
+  ordersAsDealer         Order[]    @relation("DealerOrders")
+  auditEvents            AuditLog[] @relation("ActorAudit")
 }
 
 model LicenseDocument {
@@ -104,34 +106,35 @@ model Product {
 }
 
 model InventoryBatch {
-  id            String   @id @default(cuid())
-  productId     String
-  batchNo       String
-  expiryDate    DateTime
-  quantity      Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  productId String
+  batchNo   String
+  expiryDate DateTime
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   @@unique([productId, batchNo])
 }
 
 model Order {
-  id              String       @id @default(cuid())
-  orderNo         String       @unique
-  orderType       OrderType    @default(CHEMIST_PURCHASE)
+  id              String        @id @default(cuid())
+  orderNo         String        @unique
+  orderType       OrderType     @default(CHEMIST_PURCHASE)
   chemistId       String?
   dealerId        String?
-  status          OrderStatus  @default(PLACED)
+  status          OrderStatus   @default(PLACED)
   paymentStatus   PaymentStatus @default(PENDING)
   subtotalPaise   Int
-  taxPaise        Int          @default(0)
+  taxPaise        Int           @default(0)
   totalPaise      Int
   deliveryAddress String
   notes           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  chemist         User?        @relation("ChemistOrders", fields: [chemistId], references: [id])
-  dealer          User?        @relation("DealerOrders", fields: [dealerId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  chemist         User?         @relation("ChemistOrders", fields: [chemistId], references: [id])
+  dealer          User?         @relation("DealerOrders", fields: [dealerId], references: [id])
   items           OrderItem[]
   payment         Payment?
 }
@@ -171,7 +174,6 @@ model AuditLog {
   createdAt  DateTime @default(now())
   actor      User?    @relation("ActorAudit", fields: [actorId], references: [id], onDelete: SetNull)
 }
-
 
 model Notification {
   id        String   @id @default(cuid())
